@@ -18,7 +18,8 @@
 FILE *fdopen(int fd, const char *mode);
 char *fgets(char *str, int n, FILE *stream);
 
-void error404(FILE *stream, char *DEFAULT404){
+void error404(FILE *stream, char *DEFAULT404)
+{
   int fd;
   char *p;
   struct stat sizebuf;
@@ -37,7 +38,8 @@ void error404(FILE *stream, char *DEFAULT404){
   munmap(p, sizebuf.st_size);
 }
 
-void error403(FILE *stream, char *DEFAULT403){
+void error403(FILE *stream, char *DEFAULT403)
+{
   int fd;
   char *p;
   struct stat sizebuf;
@@ -56,7 +58,8 @@ void error403(FILE *stream, char *DEFAULT403){
   munmap(p, sizebuf.st_size);
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
   /* initialize process and logging */
   FILE *fp= NULL;
   pid_t process_id = 0;
@@ -65,13 +68,15 @@ int main(int argc, char *argv[]){
   /* create fork */
   process_id = fork();
 
-  if(process_id < 0){
+  if(process_id < 0)
+  {
     printf("fork failed!\n");
     exit(1);
   }
   
   /* kill parent process */
-  if(process_id > 0){
+  if(process_id > 0)
+  {
     printf("pid %d \n", process_id);
     exit(0);
   }
@@ -79,7 +84,8 @@ int main(int argc, char *argv[]){
   umask(0);
 
   sid = setsid();
-  if(sid < 0){
+  if(sid < 0)
+  {
     exit(1);
   }
 
@@ -131,7 +137,8 @@ int main(int argc, char *argv[]){
     /* try creating a socket */
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
 
-    if(fd_server < 0){
+    if(fd_server < 0)
+    {
       fprintf(fp, "socket\n");
       fflush(fp);
       fclose(fp);
@@ -142,7 +149,8 @@ int main(int argc, char *argv[]){
     }
 
     /* re-using socket port */
-    if(setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int)) < 0){
+    if(setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int)) < 0)
+    {
       fprintf(fp, "re-using port: %s\n", strerror(errno));
       fflush(fp);
       fclose(fp);
@@ -156,7 +164,8 @@ int main(int argc, char *argv[]){
     server_addr.sin_port = htons(PORT);
     
     /* try binding */
-    if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0){
+    if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)
+    {
       fprintf(fp, "bind: %s\n", strerror(errno));
       fflush(fp);
       fclose(fp);
@@ -168,7 +177,8 @@ int main(int argc, char *argv[]){
     }
 
     /* if more than 10 connections are queued than stop */
-    if(listen(fd_server, 10) == -1){
+    if(listen(fd_server, 10) == -1)
+    {
       perror("listen");
       close(fd_server);
       
@@ -182,14 +192,16 @@ int main(int argc, char *argv[]){
     while(1){
       fd_client = accept(fd_server, (struct sockaddr *) &client_addr, &sin_len);
 
-      if(fd_client == -1){
+      if(fd_client == -1)
+      {
         perror("failed connection\n");
         fprintf(fp, "failed connection\n");
         fflush(fp);
         continue;
       }
 
-      if((stream = fdopen(fd_client, "r+")) == NULL){
+      if((stream = fdopen(fd_client, "r+")) == NULL)
+      {
         perror("ERROR on fdopen\n");
         fprintf(fp, "Error on fdopen\n");
         fflush(fp);
@@ -217,19 +229,22 @@ int main(int argc, char *argv[]){
       fgets(buf, BUFSIZE, stream);
       printf("%s\n", buf);
 
-      while(strcmp(buf, "\r\n")) {
+      while(strcmp(buf, "\r\n")) 
+      {
         fgets(buf, BUFSIZE, stream);
         printf("%s", buf);
       }
 
       strcpy(filename, ".");
       strcat(filename, uri);
-      if(uri[strlen(uri)-1] == '/'){
+      if(uri[strlen(uri)-1] == '/')
+      {
         strcat(filename, DEFAULTPAGE);
       }
 
       /* get file size and check if it exists */
-      if(stat(filename, &sizebuf) < 0){
+      if(stat(filename, &sizebuf) < 0)
+      {
         printf("no such file %s\n", filename);
 
         fprintf(fp, "no such file %s\n", filename);
@@ -246,11 +261,14 @@ int main(int argc, char *argv[]){
       }
 
       /* get filetype */
-      if(strstr(filename, ".html")){
+      if(strstr(filename, ".html"))
+      {
         strcpy(filetype, "text/html");
-      } else if(strstr(filename, ".gif")){
+      } else if(strstr(filename, ".gif"))
+      {
         strcpy(filetype, "image/gif");
-      } else if(strstr(filename, ".jpg")){
+      } else if(strstr(filename, ".jpg"))
+      {
         strcpy(filetype, "image/jpg");
       } else {
         strcpy(filetype, "text/plain");
@@ -259,7 +277,8 @@ int main(int argc, char *argv[]){
       /* open file and write it to response */
       fd = open(filename, O_RDONLY);
       
-      if(fd < 0){
+      if(fd < 0)
+      {
         printf("access denied %s\n", filename);
 
         fprintf(fp, "access denied %s\n", filename);
